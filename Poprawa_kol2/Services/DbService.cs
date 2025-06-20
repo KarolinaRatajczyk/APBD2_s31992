@@ -47,11 +47,18 @@ public class DbService(AppDbContext data) : IDbService
     
     public async Task DeleteEmployeeAsync(int employeeId)
     {
-        var affectedRows = await data.Employees.Where(e => e.Id == employeeId).ExecuteDeleteAsync();
-        
-        if (affectedRows == 0)
-        {
-            throw new NotFoundException($"Employee with id: {employeeId} not found");
-        }
+        var employee = await data.Employees
+            .Include(e => e.Attendances)
+            .Include(e => e.Interests)
+            .FirstOrDefaultAsync(e => e.Id == employeeId);
+
+        if (employee == null)
+            throw new NotFoundException($"Employee with ID: {employeeId} not found");
+
+        data.TrainingAttendances.RemoveRange(employee.Attendances);
+        data.Interests.RemoveRange(employee.Interests);
+        data.Employees.Remove(employee);
+
+        await data.SaveChangesAsync();
     }
 }
