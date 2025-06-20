@@ -8,6 +8,7 @@ namespace Poprawa_kol2.Services;
 public interface IDbService
 {
     public Task<EmployeeGetDto> GetEmployeeDetailsByIdAsync(int employeeId);
+    public Task DeleteEmployeeAsync(int employeeId);
 }
 
 public class DbService(AppDbContext data) : IDbService
@@ -42,5 +43,15 @@ public class DbService(AppDbContext data) : IDbService
             throw new NotFoundException($"Employee with ID {employeeId} not found");
 
         return result;
+    }
+    
+    public async Task DeleteEmployeeAsync(int employeeId)
+    {
+        var affectedRows = await data.Employees.Where(e => e.Id == employeeId).ExecuteDeleteAsync();
+        
+        if (affectedRows == 0)
+        {
+            throw new NotFoundException($"Employee with id: {employeeId} not found");
+        }
     }
 }

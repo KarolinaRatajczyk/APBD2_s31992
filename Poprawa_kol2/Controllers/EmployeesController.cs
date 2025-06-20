@@ -20,5 +20,19 @@ public class EmployeesController(IDbService service) : ControllerBase
             return NotFound(e.Message);
         }
     }
-    
+
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteEmployeeAsync([FromRoute] int id)
+    {
+        try
+        {
+            await service.DeleteEmployeeAsync(id);
+            return NoContent();
+        }
+        catch (NotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+    }
 }

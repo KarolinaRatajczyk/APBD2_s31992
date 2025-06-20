@@ -5,8 +5,8 @@ namespace Poprawa_kol2.Models;
 
 public class Employee
 {
-    [Column("ID")]
     [Key]
+    [Column("ID")]
     public int Id { get; set; }
 
     [MaxLength(150)]
