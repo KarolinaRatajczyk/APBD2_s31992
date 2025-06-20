@@ -1,8 +1,46 @@
 using Microsoft.EntityFrameworkCore;
+using Poprawa_kol2.DTOs;
+using Poprawa_kol2.Data;
+using Poprawa_kol2.Exceptions;
 
 namespace Poprawa_kol2.Services;
 
-public class DbService
+public interface IDbService
 {
-    
+    public Task<EmployeeGetDto> GetEmployeeDetailsByIdAsync(int employeeId);
+}
+
+public class DbService(AppDbContext data) : IDbService
+{
+    public async Task<EmployeeGetDto> GetEmployeeDetailsByIdAsync(int employeeId)
+    {
+        var result = await data.Employees
+            .Where(e => e.Id == employeeId)
+            .Select(e => new EmployeeGetDto
+            {
+                Id = e.Id,
+                Name = e.Name,
+                Department = e.Department,
+                InterestedTrainings = e.Interests.Select(t => new InterestedGetDto
+                {
+                   TrainingId = t.TrainingId,
+                   Topic = t.Training.Topic,
+                   Location = t.Training.Location,
+                }).ToList(),
+                AttendedTrainings = e.Attendances.Select(a => new AttendedGetDto
+                {
+                    TrainingId = a.TrainingId,
+                    Topic = a.Training.Topic,
+                    Location = a.Training.Location,
+                    AttendanceDate = a.AttendanceDate,
+                    FeedbackScore = a.FeedbackScore,
+                }).ToList(),
+            })
+            .FirstOrDefaultAsync();
+        
+        if (result == null)
+            throw new NotFoundException($"Employee with ID {employeeId} not found");
+
+        return result;
+    }
 }
